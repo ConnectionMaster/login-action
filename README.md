@@ -8,18 +8,12 @@
 
 GitHub Action to login against a Docker registry.
 
-> :bulb: See also:
-> * [setup-buildx](https://github.com/docker/setup-buildx-action) action
-> * [setup-qemu](https://github.com/docker/setup-qemu-action) action
-> * [build-push](https://github.com/docker/build-push-action) action
-
 ![Screenshot](.github/docker-login.png)
 
 ___
 
 * [Usage](#usage)
   * [Docker Hub](#docker-hub)
-  * [GitHub Packages Docker Registry](#github-packages-docker-registry)
   * [GitHub Container Registry](#github-container-registry)
   * [GitLab](#gitlab)
   * [Azure Container Registry (ACR)](#azure-container-registry-acr)
@@ -28,10 +22,10 @@ ___
   * [AWS Elastic Container Registry (ECR)](#aws-elastic-container-registry-ecr)
   * [AWS Public Elastic Container Registry (ECR)](#aws-public-elastic-container-registry-ecr)
   * [OCI Oracle Cloud Infrastructure Registry (OCIR)](#oci-oracle-cloud-infrastructure-registry-ocir)
+  * [Quay.io](#quayio)
 * [Customizing](#customizing)
   * [inputs](#inputs)
 * [Keep up-to-date with GitHub Dependabot](#keep-up-to-date-with-github-dependabot)
-* [Limitation](#limitation)
 
 ## Usage
 
@@ -59,40 +53,9 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 ```
 
-### GitHub Packages Docker Registry
-
-> :warning: GitHub Packages Docker Registry (aka `docker.pkg.github.com`) **is deprecated** and will sunset early next
-> year. It's strongly advised to [migrate to GitHub Container Registry](https://docs.github.com/en/packages/getting-started-with-github-container-registry/migrating-to-github-container-registry-for-docker-images)
-> instead.
-
-You can configure the Docker client to use [GitHub Packages to publish and retrieve docker images](https://docs.github.com/en/packages/using-github-packages-with-your-projects-ecosystem/configuring-docker-for-use-with-github-packages).
-
-```yaml
-name: ci
-
-on:
-  push:
-    branches: master
-
-jobs:
-  login:
-    runs-on: ubuntu-latest
-    steps:
-      -
-        name: Login to GitHub Packages Docker Registry
-        uses: docker/login-action@v1
-        with:
-          registry: docker.pkg.github.com
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-```
-
 ### GitHub Container Registry
 
-To use the [GitHub Container Registry](https://docs.github.com/en/packages/getting-started-with-github-container-registry),
-you need to [enable this feature for your personal or organization account](https://docs.github.com/en/packages/guides/enabling-improved-container-support).
-
-To [authenticate against it](https://docs.github.com/en/packages/guides/migrating-to-github-container-registry-for-docker-images#authenticating-with-the-container-registry),
+To authenticate against the [GitHub Container Registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry),
 use the [`GITHUB_TOKEN`](https://docs.github.com/en/actions/reference/authentication-in-a-workflow) for the best
 security and experience.
 
@@ -112,7 +75,7 @@ jobs:
         uses: docker/login-action@v1
         with:
           registry: ghcr.io
-          username: ${{ github.repository_owner }}
+          username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 ```
 
@@ -380,6 +343,30 @@ jobs:
 
 > Replace `<region>` with their respective values from [availability regions](https://docs.cloud.oracle.com/iaas/Content/Registry/Concepts/registryprerequisites.htm#Availab)
 
+### Quay.io
+
+Use a [Robot account](https://docs.quay.io/glossary/robot-accounts.html) with the ability to push to a public/private Quay.io repository.
+
+```yaml
+name: ci
+
+on:
+  push:
+    branches: master
+
+jobs:
+  login:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Login to Quay.io
+        uses: docker/login-action@v1
+        with:
+          registry: quay.io
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_ROBOT_TOKEN }}
+```
+
 ## Customizing
 
 ### inputs
@@ -408,7 +395,3 @@ updates:
     schedule:
       interval: "daily"
 ```
-
-## Limitation
-
-This action is only available for Linux [virtual environments](https://help.github.com/en/articles/virtual-environments-for-github-actions#supported-virtual-environments-and-hardware-resources).
